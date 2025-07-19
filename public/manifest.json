@@ -1,0 +1,22 @@
+{
+  "name": "Gsole",
+  "short_name": "Gsole",
+  "description": "Secure chat application with real-time messaging",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#22c55e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/placeholder.svg?height=192&width=192&text=G",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/placeholder.svg?height=512&width=512&text=G",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
