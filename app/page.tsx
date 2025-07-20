@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Users, MessageSquare, Copy, Check } from "lucide-react"
 import ChatScreen from "./components/chat-screen"
+import FingerprintJS from '@fingerprintjs/fingerprintjs'
 
 interface Friend {
   id: string
@@ -22,28 +23,24 @@ export default function TerminalChatApp() {
 
   // Generate unique user token on first launch
   useEffect(() => {
-    let token = localStorage.getItem("userToken")
-    if (!token) {
-      token = generateToken()
-      localStorage.setItem("userToken", token)
-    }
-    setUserToken(token)
+    const getFingerprint = async () => {
+      let token = localStorage.getItem("userToken")
+      if (!token) {
+        const fp = await FingerprintJS.load()
+        const result = await fp.get()
+        token = result.visitorId.toUpperCase().slice(0, 12) // 12-char, uppercase for theme match
+        localStorage.setItem("userToken", token)
+      }
+      setUserToken(token)
 
-    // Load friends from localStorage
-    const savedFriends = localStorage.getItem("friends")
-    if (savedFriends) {
-      setFriends(JSON.parse(savedFriends))
+      // Load friends from localStorage
+      const savedFriends = localStorage.getItem("friends")
+      if (savedFriends) {
+        setFriends(JSON.parse(savedFriends))
+      }
     }
+    getFingerprint()
   }, [])
-
-  const generateToken = (): string => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    let result = ""
-    for (let i = 0; i < 12; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-    return result
-  }
 
   const createChatId = (user1: string, user2: string): string => {
     return [user1, user2].sort().join("_")
