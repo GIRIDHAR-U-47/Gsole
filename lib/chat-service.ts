@@ -3,10 +3,12 @@ import { ref, push, onValue, off, serverTimestamp, query, orderByChild, limitToL
 
 export interface Message {
   id: string
-  text: string
+  text?: string
   sender: string
   timestamp: number
-  type?: "text" | "image" | "file"
+  type?: "text" | "image" | "file" | "audio"
+  audio?: string
+  image?: string
 }
 
 export class ChatService {
