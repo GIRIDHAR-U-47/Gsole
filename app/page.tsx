@@ -67,7 +67,11 @@ export default function TerminalChatApp() {
   }
 
   const addFriend = () => {
-    if (!friendInput.trim() || friendInput === userToken) return
+    console.log('addFriend function triggered');
+    if (!friendInput.trim() || friendInput === userToken) {
+      console.log('Invalid friend input');
+      return;
+    }
 
     // Initialize chat service for the new connection
     const chatId = createChatId(userToken, friendInput)
@@ -231,22 +235,28 @@ export default function TerminalChatApp() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-2">
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              console.log('Form submitted');
+              addFriend();
+            }} className="flex gap-2">
               <Input
                 value={friendInput}
                 onChange={(e) => setFriendInput(e.target.value.toUpperCase())}
                 placeholder="ENTER FRIEND'S CHAT ID"
                 className="bg-gray-900 border-green-500 text-green-400 font-mono placeholder:text-green-700"
                 maxLength={12}
+                type="text"
               />
               <Button
-                onClick={addFriend}
-                className="bg-green-900 hover:bg-green-800 text-green-400 border border-green-500"
+                type="submit"
+                className="bg-green-900 active:bg-green-800 hover:bg-green-800 text-green-400 border border-green-500 touch-manipulation w-full sm:w-auto"
                 disabled={!friendInput.trim() || friendInput === userToken}
+                style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
               >
                 CONNECT
               </Button>
-            </div>
+            </form>
           </CardContent>
         </Card>
 
