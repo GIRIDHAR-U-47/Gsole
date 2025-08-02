@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Users, MessageSquare, Copy, Check } from "lucide-react"
 import ChatScreen from "./components/chat-screen"
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
+import { useToast } from "@/components/ui/use-toast"
 
 interface Friend {
   id: string
@@ -15,6 +16,24 @@ interface Friend {
 }
 
 export default function TerminalChatApp() {
+  const { toast } = useToast()
+
+  // Request notification permission and register service worker
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('ServiceWorker registration successful');
+            })
+            .catch(err => {
+              console.error('ServiceWorker registration failed:', err);
+            });
+        }
+      });
+    }
+  }, []);
   const [userToken, setUserToken] = useState<string>("")
   const [friendInput, setFriendInput] = useState<string>("")
   const [friends, setFriends] = useState<Friend[]>([])
@@ -49,6 +68,14 @@ export default function TerminalChatApp() {
   const addFriend = () => {
     if (!friendInput.trim() || friendInput === userToken) return
 
+    // Show browser notification for new friend
+    if (Notification.permission === 'granted') {
+      new Notification('New Friend Added', {
+        body: `${friendInput} has been added to your friends list`,
+        icon: '/icon.png'
+      });
+    }
+
     const chatId = createChatId(userToken, friendInput)
     const newFriend: Friend = {
       id: friendInput,
@@ -59,6 +86,20 @@ export default function TerminalChatApp() {
     setFriends(updatedFriends)
     localStorage.setItem("friends", JSON.stringify(updatedFriends))
     setFriendInput("")
+    // Show both toast and browser notification
+    toast({
+      title: "New Friend Added",
+      description: `${friendInput} has been added to your friends list`,
+      duration: 3000,
+      variant: "success"
+    });
+
+    if (Notification.permission === 'granted') {
+      new Notification('New Friend Added', {
+        body: `${friendInput} has been added to your friends list`,
+        icon: '/icon.png'
+      });
+    }
   }
 
   const copyToClipboard = async () => {
@@ -66,6 +107,20 @@ export default function TerminalChatApp() {
       await navigator.clipboard.writeText(userToken)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+      console.log('Showing toast for ID copy');
+      toast({
+        title: "ID Copied",
+        description: "Your ID has been copied to clipboard",
+        duration: 2000,
+        variant: "success"
+      });
+      if (Notification.permission === 'granted') {
+        new Notification('ID Copied', {
+          body: 'Your ID has been copied to clipboard',
+          icon: '/icon.png'
+        });
+      }
+      console.log('Toast shown for ID copy');
     } catch (err) {
       console.error("Failed to copy:", err)
     }
@@ -84,7 +139,30 @@ export default function TerminalChatApp() {
         chatId={currentChat}
         userToken={userToken}
         friendId={friend?.id || ""}
-        onBack={() => setCurrentChat(null)}
+        onBack={() => {
+        setCurrentChat(null)
+        console.log('Showing toast for chat close');
+        toast({
+      title: "Chat Closed",
+      description: "You've left the current chat",
+      duration: 2000,
+      variant: "success"
+    });
+    if (Notification.permission === 'granted') {
+      new Notification('Chat Closed', {
+        body: "You've left the current chat",
+        icon: '/icon.png'
+      });
+    }
+
+    if (Notification.permission === 'granted') {
+      new Notification('Chat Closed', {
+        body: "You've left the current chat",
+        icon: '/icon.png'
+      });
+    }
+        console.log('Toast shown for chat close');
+      }}
       />
     )
   }

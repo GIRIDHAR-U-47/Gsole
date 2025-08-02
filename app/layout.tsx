@@ -1,8 +1,9 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import { JetBrains_Mono } from "next/font/google"
 import "./globals.css"
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -16,9 +17,15 @@ export const metadata: Metadata = {
   title: "Gsole - Secure Messaging",
   description: "Secure chat application with real-time messaging",
   manifest: "/manifest.json",
+  generator: 'v0.dev'
+}
+
+export const viewport: Viewport = {
   themeColor: "#22c55e",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
-    generator: 'v0.dev'
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false
 }
 
 export default function RootLayout({
@@ -36,7 +43,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/placeholder.svg?height=192&width=192" />
       </head>
-      <body className={`${inter.className} ${jetbrains.className}`}>{children}</body>
+      <body className={`${inter.className} ${jetbrains.className}`}>
+        <Toaster />
+        {children}
+      </body>
     </html>
   )
 }
