@@ -40,6 +40,7 @@ export default function TerminalChatApp() {
   const [friends, setFriends] = useState<Friend[]>([])
   const [currentChat, setCurrentChat] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [isConnecting, setIsConnecting] = useState(false)
 
   // Generate unique user token on first launch
   useEffect(() => {
@@ -66,49 +67,53 @@ export default function TerminalChatApp() {
     return [user1, user2].sort().join("_")
   }
 
-  const addFriend = () => {
+  const addFriend = async () => {
     console.log('addFriend function triggered');
+    setIsConnecting(true);
     if (!friendInput.trim() || friendInput === userToken) {
       console.log('Invalid friend input');
+      setIsConnecting(false);
       return;
     }
 
     // Initialize chat service for the new connection
-    const chatId = createChatId(userToken, friendInput)
-    chatService.initializeChat(chatId, [userToken, friendInput]).catch(error => {
-      console.error('Failed to initialize chat:', error)
+    try {
+      const chatId = createChatId(userToken, friendInput)
+      await chatService.initializeChat(chatId, [userToken, friendInput])
+
+      const newFriend: Friend = {
+        id: friendInput,
+        chatId,
+      }
+
+      const updatedFriends = [...friends, newFriend]
+      setFriends(updatedFriends)
+      localStorage.setItem("friends", JSON.stringify(updatedFriends))
+      setFriendInput("")
+
+      toast({
+        title: "New Friend Added",
+        description: `${friendInput} has been added to your friends list`,
+        duration: 3000,
+        variant: "success"
+      })
+
+      if (Notification.permission === 'granted') {
+        new Notification('New Friend Added', {
+          body: `${friendInput} has been added to your friends list`,
+          icon: '/icon.png'
+        })
+      }
+    } catch (error) {
+      console.error('Error adding friend:', error)
       toast({
         title: "Connection Failed",
-        description: "Failed to establish connection. Please try again.",
+        description: "Failed to add friend. Please try again.",
         variant: "destructive"
       })
-      return
-    })
-
-    // Show browser notification for new friend
-    if (Notification.permission === 'granted') {
-      new Notification('New Friend Added', {
-        body: `${friendInput} has been added to your friends list`,
-        icon: '/icon.png'
-      });
+    } finally {
+      setIsConnecting(false)
     }
-
-    const newFriend: Friend = {
-      id: friendInput,
-      chatId,
-    }
-
-    const updatedFriends = [...friends, newFriend]
-    setFriends(updatedFriends)
-    localStorage.setItem("friends", JSON.stringify(updatedFriends))
-    setFriendInput("")
-    // Show both toast and browser notification
-    toast({
-      title: "New Friend Added",
-      description: `${friendInput} has been added to your friends list`,
-      duration: 3000,
-      variant: "success"
-    });
 
     if (Notification.permission === 'granted') {
       new Notification('New Friend Added', {
@@ -250,11 +255,18 @@ export default function TerminalChatApp() {
               />
               <Button
                 type="submit"
-                className="bg-green-900 active:bg-green-800 hover:bg-green-800 text-green-400 border border-green-500 touch-manipulation w-full sm:w-auto"
-                disabled={!friendInput.trim() || friendInput === userToken}
+                className="bg-green-900 active:bg-green-800 hover:bg-green-800 text-green-400 border border-green-500 touch-manipulation w-full sm:w-auto flex items-center justify-center gap-2"
+                disabled={!friendInput.trim() || friendInput === userToken || isConnecting}
                 style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
               >
-                CONNECT
+                {isConnecting ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-400 border-t-transparent"></div>
+                    CONNECTING...
+                  </>
+                ) : (
+                  'CONNECT'
+                )}
               </Button>
             </form>
           </CardContent>
