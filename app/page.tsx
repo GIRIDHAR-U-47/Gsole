@@ -9,6 +9,7 @@ import { Users, MessageSquare, Copy, Check } from "lucide-react"
 import ChatScreen from "./components/chat-screen"
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import { useToast } from "@/components/ui/use-toast"
+import { chatService } from "@/lib/chat-service"
 
 interface Friend {
   id: string
@@ -68,6 +69,18 @@ export default function TerminalChatApp() {
   const addFriend = () => {
     if (!friendInput.trim() || friendInput === userToken) return
 
+    // Initialize chat service for the new connection
+    const chatId = createChatId(userToken, friendInput)
+    chatService.initializeChat(chatId, [userToken, friendInput]).catch(error => {
+      console.error('Failed to initialize chat:', error)
+      toast({
+        title: "Connection Failed",
+        description: "Failed to establish connection. Please try again.",
+        variant: "destructive"
+      })
+      return
+    })
+
     // Show browser notification for new friend
     if (Notification.permission === 'granted') {
       new Notification('New Friend Added', {
@@ -76,7 +89,6 @@ export default function TerminalChatApp() {
       });
     }
 
-    const chatId = createChatId(userToken, friendInput)
     const newFriend: Friend = {
       id: friendInput,
       chatId,
